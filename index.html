@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+      <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+      async function main(){
+        let pyodide = await loadPyodide();
+        await pyodide.loadPackage("micropip")
+        console.log(await pyodide.runPythonAsync(`
+            # Pyodide Installs
+            import micropip     
+            await micropip.install('reddit-post-scraping-tool==1.9.1.1')
+            await micropip.install('pyodide-http')
+
+            # Monkey patch requests
+            import pyodide_http
+            pyodide_http.patch_all()
+
+            # Normal python imports
+            import sys 
+            from unittest.mock import patch
+            from rpst.main import run
+            `
+        ));
+
+        console.log(pyodide.runPython(`
+            with patch.object(
+                    sys,
+                    'argv',
+                    [
+                        'rpst',
+                        '--listing','new',
+                        '--limit','20',
+                        '--subreddit', 'bellingcat',
+                        '--keyword', 'bellingcat'
+                    ]
+                ): 
+                  run()
+            `
+            ));
+      }
+      main();
+    </script>
+  </body>
+</html>
